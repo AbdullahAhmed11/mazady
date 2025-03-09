@@ -23,7 +23,7 @@ export function Navbar() {
             <nav className="max-md:hidden" >       
                 <ul className="flex ">
                     {nav.map((n, i) => {
-                        let active = i == 0 ? true : false;
+                        const active = i == 0 ? true : false;
                         return  <NavItem key={n} value={n} active={active}  />
                     })}
                 </ul>

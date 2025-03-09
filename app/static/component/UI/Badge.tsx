@@ -1,4 +1,4 @@
-import { ReactNode, JSX } from "react";
+import {  JSX } from "react";
 
 interface BadgeProps {
   Icon?: JSX.Element;

@@ -1,12 +1,10 @@
 'use client'
 import { IconProps } from "@/app/types/static";
-import { useDarkMode } from "./useDarkMode";
 
 export function DownloadIcon({ w, h, s }: IconProps) {
   const height = h ? h : "24";
   const width = w ? w : "24";
-  let stroke = s ? s : "#333333";   
-  const darkMode = useDarkMode();
+  const stroke = s ? s : "#333333";   
 
   return (
     <svg

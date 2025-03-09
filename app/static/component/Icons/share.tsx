@@ -1,12 +1,11 @@
 'use client'
 import { IconProps } from "@/app/types/static";
-import { useDarkMode } from "./useDarkMode";
 
 export function ShareIcon({ w, h, s, f }: IconProps) {
   const height = h ? h : "22";
   const width = w ? w : "22";
-  let fill = f ? f : "#333333";
-  let stroke = s ? s : "#333333";   
+  const  fill = f ? f : "#333333";
+  const stroke = s ? s : "#333333";   
 
     return (
       <svg

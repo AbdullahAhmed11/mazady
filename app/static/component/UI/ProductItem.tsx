@@ -1,4 +1,4 @@
-import Image, { StaticImageData } from "next/image";
+import  { StaticImageData } from "next/image";
 import { Badge } from "./Badge";
 import { HeartIcon } from "../Icons/heart";
 import { BadgedImg } from "./BadgedImg";
