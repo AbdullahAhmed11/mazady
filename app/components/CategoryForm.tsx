@@ -14,10 +14,7 @@ interface Property {
   options: { id: number; name: string; child: boolean }[];
 }
 
-interface Option {
-  value: number | string; // Depending on your data, it could be a number or string
-  label: string;
-}
+
 
 const privateKey = 'Tg$LXgp7uK!D@aAj^aT3TmWY9a9u#qh5g&xgEETJ';
 
@@ -73,7 +70,7 @@ const CategoryForm: React.FC = () => {
     }
   }, [selectedSubCategory]);
 
-  const handlePropertyChange = (propertyId: number, value: Option, hasChild: boolean) => {
+  const handlePropertyChange = (propertyId: number, value: any, hasChild: boolean) => {
     setSelectedProperties((prev) => ({ ...prev, [propertyId]: value.label }));
     if (hasChild) {
       axios.get(`https://staging.mazaady.com/api/v1/get-options-child/${value.value}`, {
@@ -108,12 +105,7 @@ const CategoryForm: React.FC = () => {
           <Select 
             className="mb-2 text-[#000]" 
             options={[...prop.options.map((opt) => ({ value: opt.id, label: opt.name })), { value: "other", label: "Other" }]} 
-            // onChange={(value: Option | null) => handlePropertyChange(prop.id, value, prop.options.some((o) => o.child))} 
-            onChange={(value: Option | null) => {
-              if (value) {
-                handlePropertyChange(prop.id, value, prop.options.some((o) => o.child));
-              }
-            }}
+            onChange={(value) => handlePropertyChange(prop.id, value, prop.options.some((o) => o.child))} 
             placeholder={prop.name}
           />
           {selectedProperties[prop.id] === "Other" && <input className="border p-2 w-full" placeholder="Enter custom value" />}
@@ -122,12 +114,7 @@ const CategoryForm: React.FC = () => {
               key={child.id} 
               className="mt-2 text-[#000]" 
               options={child.options.map((opt) => ({ value: opt.id, label: opt.name }))} 
-              onChange={(value: Option | null) => {
-                if (value) {
-                  handlePropertyChange(prop.id, value, prop.options.some((o) => o.child));
-                }
-              }}
-              // onChange={(value) => handlePropertyChange(child.id, value, child.options.some((o) => o.child))} 
+              onChange={(value) => handlePropertyChange(child.id, value, child.options.some((o) => o.child))} 
               placeholder={child.name}
             />
           ))}
