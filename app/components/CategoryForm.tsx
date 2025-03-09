@@ -28,13 +28,15 @@ const CategoryForm: React.FC = () => {
 
   useEffect(() => {
     axios.get("https://stagingapi.mazaady.com/api/v1/all-categories/web", {
-      headers: {
-        'private-key': privateKey,
-        'content-language': 'en',
-        "platform": "web",
-        "currency": "AED",
-        "Accept": "application/json",
-      }
+      headers: 
+                {   
+                  'private-key': privateKey,
+                  'content-language': 'en',
+                  "platform": "web",
+                  "currency": "AED",
+                  "Accept": "application/json",
+                    
+                }
     }).then((res) => setCategories(res.data.data.categories));
   }, []);
 
