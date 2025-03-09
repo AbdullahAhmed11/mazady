@@ -1,8 +1,10 @@
-// 'use client'
+// 'use client';
+
 // import React, { useState, useEffect } from "react";
 // import axios from "axios";
-// import Select from "react-select";
+// import Select, { SingleValue } from "react-select";
 
+// // Interfaces for Type Safety
 // interface Category {
 //   id: number;
 //   name: string;
@@ -11,121 +13,132 @@
 // interface Property {
 //   id: number;
 //   name: string;
-//   options: { id: number; name: string; child: boolean }[];
+//   options: { id: number | string; name: string; child: boolean }[];
 // }
 
+// interface Option {
+//   value: number | string;
+//   label: string;
+// }
 
-
-// const privateKey = 'Tg$LXgp7uK!D@aAj^aT3TmWY9a9u#qh5g&xgEETJ';
-
+// // Constants
+// const API_BASE_URL = "https://stagingapi.mazaady.com/api/v1";
+// const PRIVATE_KEY = 'Tg$LXgp7uK!D@aAj^aT3TmWY9a9u#qh5g&xgEETJ';
+// const HEADERS = {
+//   'private-key': PRIVATE_KEY,
+//   'content-language': 'en',
+//   platform: 'web',
+//   currency: 'AED',
+//   Accept: 'application/json',
+// };
 
 // const CategoryForm: React.FC = () => {
+//   // State Management
 //   const [categories, setCategories] = useState<Category[]>([]);
 //   const [subCategories, setSubCategories] = useState<Category[]>([]);
 //   const [properties, setProperties] = useState<Property[]>([]);
-//   const [selectedMainCategory, setSelectedMainCategory] = useState<{ value: number; label: string } | null>(null);
-//   const [selectedSubCategory, setSelectedSubCategory] = useState<{ value: number; label: string } | null>(null);
+//   const [selectedMainCategory, setSelectedMainCategory] = useState<SingleValue<Option>>(null);
+//   const [selectedSubCategory, setSelectedSubCategory] = useState<SingleValue<Option>>(null);
 //   const [selectedProperties, setSelectedProperties] = useState<Record<string, string>>({});
 //   const [childProperties, setChildProperties] = useState<Record<number, Property[]>>({});
 
+//   // Fetch Data Function
+//   const fetchData = async (url: string, setData: (data: any) => void) => {
+//     try {
+//       const response = await axios.get(url, { headers: HEADERS });
+//       setData(response.data.data);
+//     } catch (error) {
+//       console.error(`Failed to fetch data from ${url}:`, error);
+//     }
+//   };
+
+//   // Fetch Main Categories on Component Mount
 //   useEffect(() => {
-//     axios.get("https://stagingapi.mazaady.com/api/v1/all-categories/web", {
-//       headers: 
-//                 {   
-//                   'private-key': privateKey,
-//                   'content-language': 'en',
-//                   "platform": "web",
-//                   "currency": "AED",
-//                   "Accept": "application/json",
-                    
-//                 }
-//     }).then((res) => setCategories(res.data.data.categories));
+//     fetchData(`${API_BASE_URL}/all-categories/web`, (data) => setCategories(data.categories));
 //   }, []);
 
+//   // Fetch Subcategories when Main Category is Selected
 //   useEffect(() => {
 //     if (selectedMainCategory) {
-//       axios.get(`https://stagingapi.mazaady.com/api/v1/properties/${selectedMainCategory.value}`, {
-//         headers: {
-//           'private-key': privateKey,
-//           'content-language': 'en',
-//           "platform": "web",
-//           "currency": "AED",
-//           "Accept": "application/json",
-//         }
-//       }).then((res) => setSubCategories(res.data.data));
+//       fetchData(`${API_BASE_URL}/properties/${selectedMainCategory.value}`, setSubCategories);
 //     }
 //   }, [selectedMainCategory]);
 
+//   // Fetch Properties when Subcategory is Selected
 //   useEffect(() => {
 //     if (selectedSubCategory) {
-//       axios.get(`https://stagingapi.mazaady.com/api/v1/option-properties/${selectedSubCategory.value}`, {
-//         headers: {
-//           'private-key': privateKey,
-//           'content-language': 'en',
-//           "platform": "web",
-//           "currency": "AED",
-//           "Accept": "application/json",
-//         }
-//       }).then((res) => setProperties(res.data.data));
+//       fetchData(`${API_BASE_URL}/option-properties/${selectedSubCategory.value}`, setProperties);
 //     }
 //   }, [selectedSubCategory]);
 
-//   const handlePropertyChange = (propertyId: number, value: any, hasChild: boolean) => {
+//   // Handle Property Selection
+//   const handlePropertyChange = async (propertyId: number, value: SingleValue<Option>, hasChild: boolean) => {
+//     if (!value) return;
+
 //     setSelectedProperties((prev) => ({ ...prev, [propertyId]: value.label }));
+
 //     if (hasChild) {
-//       axios.get(`https://staging.mazaady.com/api/v1/get-options-child/${value.value}`, {
-//         headers: {
-//           'private-key': privateKey,
-//           'content-language': 'en',
-//           "platform": "web",
-//           "currency": "AED",
-//           "Accept": "application/json",
-//         }
-//       }).then((res) => setChildProperties((prev) => ({ ...prev, [propertyId]: res.data.data })));
+//       try {
+//         const response = await axios.get(`https://staging.mazaady.com/api/v1/get-options-child/${value.value}`, {
+//           headers: HEADERS,
+//         });
+//         setChildProperties((prev) => ({ ...prev, [propertyId]: response.data.data }));
+//       } catch (error) {
+//         console.error("Failed to fetch child properties:", error);
+//       }
 //     }
+//   };
+
+//   // Render Dropdown Options
+//   const renderDropdownOptions = (options: { id: number | string; name: string }[], includeOther: boolean = false) => {
+//     const dropdownOptions = options.map((opt) => ({ value: opt.id, label: opt.name }));
+//     if (includeOther) dropdownOptions.push({ value: "other", label: "Other" });
+//     return dropdownOptions;
 //   };
 
 //   return (
 //     <div className="p-4 max-w-2xl mx-auto">
-//       <Select 
-//         className="mb-4 text-[#000]" 
-//         options={categories.map((cat) => ({ value: cat.id, label: cat.name }))} 
-//         onChange={setSelectedMainCategory} 
+//       {/* Main Category Dropdown */}
+//       <Select
+//         className="mb-4 text-[#000]"
+//         options={renderDropdownOptions(categories)}
+//         onChange={setSelectedMainCategory}
 //         placeholder="Select Main Category"
-
 //       />
-//       <Select 
-//         className="mb-4 text-[#000]" 
-//         options={subCategories.map((sub) => ({ value: sub.id, label: sub.name }))} 
-//         onChange={setSelectedSubCategory} 
+
+//       {/* Subcategory Dropdown */}
+//       <Select
+//         className="mb-4 text-[#000]"
+//         options={renderDropdownOptions(subCategories)}
+//         onChange={setSelectedSubCategory}
 //         placeholder="Select Sub Category"
 //       />
+
+//       {/* Properties Dropdowns */}
 //       {properties.map((prop) => (
 //         <div key={prop.id} className="mb-4">
-//           <Select 
-//             className="mb-2 text-[#000]" 
-//             options={[...prop.options.map((opt) => ({ value: opt.id, label: opt.name })), { value: "other", label: "Other" }]} 
-//             onChange={(value) => handlePropertyChange(prop.id, value, prop.options.some((o) => o.child))} 
+//           <Select
+//             className="mb-2 text-[#000]"
+//             options={renderDropdownOptions(prop.options, true)}
+//             onChange={(value) => handlePropertyChange(prop.id, value, prop.options.some((o) => o.child))}
 //             placeholder={prop.name}
 //           />
-//           {selectedProperties[prop.id] === "Other" && <input className="border p-2 w-full" placeholder="Enter custom value" />}
+//           {selectedProperties[prop.id] === "Other" && (
+//             <input className="border p-2 w-full" placeholder="Enter custom value" />
+//           )}
 //           {childProperties[prop.id]?.map((child) => (
-//             <Select 
-//               key={child.id} 
-//               className="mt-2 text-[#000]" 
-//               options={child.options.map((opt) => ({ value: opt.id, label: opt.name }))} 
-//               onChange={(value) => handlePropertyChange(child.id, value, child.options.some((o) => o.child))} 
+//             <Select
+//               key={child.id}
+//               className="mt-2 text-[#000]"
+//               options={renderDropdownOptions(child.options)}
+//               onChange={(value) => handlePropertyChange(child.id, value, child.options.some((o) => o.child))}
 //               placeholder={child.name}
 //             />
 //           ))}
 //         </div>
 //       ))}
-//       {/* <button 
-//         className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600" 
-//         onClick={() => console.log(selectedProperties)}
-//       >
-//         Submit
-//       </button> */}
+
+//       {/* Selected Properties Table */}
 //       <table className="mt-4 w-full border">
 //         <thead>
 //           <tr className="bg-gray-200">
@@ -149,13 +162,13 @@
 // export default CategoryForm;
 
 
-
 'use client';
 
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import Select, { SingleValue } from "react-select";
 
+// Interfaces for Type Safety
 interface Category {
   id: number;
   name: string;
@@ -164,7 +177,7 @@ interface Category {
 interface Property {
   id: number;
   name: string;
-  options: { id: number; name: string; child: boolean }[];
+  options: { id: number | string; name: string; child: boolean }[];
 }
 
 interface Option {
@@ -172,9 +185,27 @@ interface Option {
   label: string;
 }
 
-const privateKey = 'Tg$LXgp7uK!D@aAj^aT3TmWY9a9u#qh5g&xgEETJ';
+interface ApiResponse<T> {
+  data: T;
+}
+
+interface CategoriesResponse {
+  categories: Category[];
+}
+
+// Constants
+const API_BASE_URL = "https://stagingapi.mazaady.com/api/v1";
+const PRIVATE_KEY = 'Tg$LXgp7uK!D@aAj^aT3TmWY9a9u#qh5g&xgEETJ';
+const HEADERS = {
+  'private-key': PRIVATE_KEY,
+  'content-language': 'en',
+  platform: 'web',
+  currency: 'AED',
+  Accept: 'application/json',
+};
 
 const CategoryForm: React.FC = () => {
+  // State Management
   const [categories, setCategories] = useState<Category[]>([]);
   const [subCategories, setSubCategories] = useState<Category[]>([]);
   const [properties, setProperties] = useState<Property[]>([]);
@@ -183,101 +214,104 @@ const CategoryForm: React.FC = () => {
   const [selectedProperties, setSelectedProperties] = useState<Record<string, string>>({});
   const [childProperties, setChildProperties] = useState<Record<number, Property[]>>({});
 
+  // Fetch Data Function
+  const fetchData = async <T,>(url: string, setData: (data: T) => void) => {
+    try {
+      const response = await axios.get<ApiResponse<T>>(url, { headers: HEADERS });
+      setData(response.data.data);
+    } catch (error) {
+      console.error(`Failed to fetch data from ${url}:`, error);
+    }
+  };
+
+  // Fetch Main Categories on Component Mount
   useEffect(() => {
-    axios.get("https://stagingapi.mazaady.com/api/v1/all-categories/web", {
-      headers: {
-        'private-key': privateKey,
-        'content-language': 'en',
-        "platform": "web",
-        "currency": "AED",
-        "Accept": "application/json",
-      }
-    }).then((res) => setCategories(res.data.data.categories))
-      .catch((err) => console.error("Failed to fetch categories:", err));
+    fetchData<CategoriesResponse>(`${API_BASE_URL}/all-categories/web`, (data) => setCategories(data.categories));
   }, []);
 
+  // Fetch Subcategories when Main Category is Selected
   useEffect(() => {
     if (selectedMainCategory) {
-      axios.get(`https://stagingapi.mazaady.com/api/v1/properties/${selectedMainCategory.value}`, {
-        headers: {
-          'private-key': privateKey,
-          'content-language': 'en',
-          "platform": "web",
-          "currency": "AED",
-          "Accept": "application/json",
-        }
-      }).then((res) => setSubCategories(res.data.data))
-        .catch((err) => console.error("Failed to fetch subcategories:", err));
+      fetchData<Category[]>(`${API_BASE_URL}/properties/${selectedMainCategory.value}`, setSubCategories);
     }
   }, [selectedMainCategory]);
 
+  // Fetch Properties when Subcategory is Selected
   useEffect(() => {
     if (selectedSubCategory) {
-      axios.get(`https://stagingapi.mazaady.com/api/v1/option-properties/${selectedSubCategory.value}`, {
-        headers: {
-          'private-key': privateKey,
-          'content-language': 'en',
-          "platform": "web",
-          "currency": "AED",
-          "Accept": "application/json",
-        }
-      }).then((res) => setProperties(res.data.data))
-        .catch((err) => console.error("Failed to fetch properties:", err));
+      fetchData<Property[]>(`${API_BASE_URL}/option-properties/${selectedSubCategory.value}`, setProperties);
     }
   }, [selectedSubCategory]);
 
-  const handlePropertyChange = (propertyId: number, value: SingleValue<Option>, hasChild: boolean) => {
-    if (value) {
-      setSelectedProperties((prev) => ({ ...prev, [propertyId]: value.label }));
-      if (hasChild) {
-        axios.get(`https://staging.mazaady.com/api/v1/get-options-child/${value.value}`, {
-          headers: {
-            'private-key': privateKey,
-            'content-language': 'en',
-            "platform": "web",
-            "currency": "AED",
-            "Accept": "application/json",
-          }
-        }).then((res) => setChildProperties((prev) => ({ ...prev, [propertyId]: res.data.data })))
-          .catch((err) => console.error("Failed to fetch child properties:", err));
+  // Handle Property Selection
+  const handlePropertyChange = async (propertyId: number, value: SingleValue<Option>, hasChild: boolean) => {
+    if (!value) return;
+
+    setSelectedProperties((prev) => ({ ...prev, [propertyId]: value.label }));
+
+    if (hasChild) {
+      try {
+        const response = await axios.get<ApiResponse<Property[]>>(
+          `https://staging.mazaady.com/api/v1/get-options-child/${value.value}`,
+          { headers: HEADERS }
+        );
+        setChildProperties((prev) => ({ ...prev, [propertyId]: response.data.data }));
+      } catch (error) {
+        console.error("Failed to fetch child properties:", error);
       }
     }
   };
 
+  // Render Dropdown Options
+  const renderDropdownOptions = (options: { id: number | string; name: string }[], includeOther: boolean = false) => {
+    const dropdownOptions = options.map((opt) => ({ value: opt.id, label: opt.name }));
+    if (includeOther) dropdownOptions.push({ value: "other", label: "Other" });
+    return dropdownOptions;
+  };
+
   return (
     <div className="p-4 max-w-2xl mx-auto">
+      {/* Main Category Dropdown */}
       <Select
         className="mb-4 text-[#000]"
-        options={categories.map((cat) => ({ value: cat.id, label: cat.name }))}
+        options={renderDropdownOptions(categories)}
         onChange={setSelectedMainCategory}
         placeholder="Select Main Category"
       />
+
+      {/* Subcategory Dropdown */}
       <Select
         className="mb-4 text-[#000]"
-        options={subCategories.map((sub) => ({ value: sub.id, label: sub.name }))}
+        options={renderDropdownOptions(subCategories)}
         onChange={setSelectedSubCategory}
         placeholder="Select Sub Category"
       />
+
+      {/* Properties Dropdowns */}
       {properties.map((prop) => (
         <div key={prop.id} className="mb-4">
           <Select
             className="mb-2 text-[#000]"
-            options={[...prop.options.map((opt) => ({ value: opt.id, label: opt.name })), { value: "other", label: "Other" }]}
+            options={renderDropdownOptions(prop.options, true)}
             onChange={(value) => handlePropertyChange(prop.id, value, prop.options.some((o) => o.child))}
             placeholder={prop.name}
           />
-          {selectedProperties[prop.id] === "Other" && <input className="border p-2 w-full" placeholder="Enter custom value" />}
+          {selectedProperties[prop.id] === "Other" && (
+            <input className="border p-2 w-full" placeholder="Enter custom value" />
+          )}
           {childProperties[prop.id]?.map((child) => (
             <Select
               key={child.id}
               className="mt-2 text-[#000]"
-              options={child.options.map((opt) => ({ value: opt.id, label: opt.name }))}
+              options={renderDropdownOptions(child.options)}
               onChange={(value) => handlePropertyChange(child.id, value, child.options.some((o) => o.child))}
               placeholder={child.name}
             />
           ))}
         </div>
       ))}
+
+      {/* Selected Properties Table */}
       <table className="mt-4 w-full border">
         <thead>
           <tr className="bg-gray-200">
